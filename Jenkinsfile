@@ -1,5 +1,10 @@
 node('master') {
 
+environment {
+    registry = "madhusweb/"
+    registryCredential = ‘dockerhub’
+}
+
 stage ('checkout code'){
 	checkout scm
 }
@@ -20,14 +25,19 @@ stage ('Archive Artifacts'){
 	archiveArtifacts artifacts: 'target/*.war'
 }
 	
-stage ('Deployment'){
-	sh 'docker build -t javdocker .'
-}
-
-stage('Push result image') {
-      steps {
-        withDockerRegistry(credentialsId: 'dockerbuildbot-index.docker.io', url:'') {
-          sh 'docker push javdocker'
+stage('Building image') {
+      steps{
+        script {
+          dockerImage = docker.build registry + ":$BUILD_NUMBER"
+        }
+      }
+    }
+    stage('Deploy Image') {
+      steps{
+         script {
+            docker.withRegistry( '', registryCredential ) {
+            dockerImage.push()
+          }
         }
       }
     }
