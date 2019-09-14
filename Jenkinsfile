@@ -23,4 +23,15 @@ stage ('Archive Artifacts'){
 stage ('Deployment'){
 	sh 'docker build -t javdocker .'
 }
+
+stage('Push result image') {
+      when {
+        branch 'master'
+      }
+      steps {
+        withDockerRegistry(credentialsId: 'dockerbuildbot-index.docker.io', url:'') {
+          sh 'docker push javdocker'
+        }
+      }
+    }
 }
